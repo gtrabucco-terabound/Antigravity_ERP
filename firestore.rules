@@ -3,7 +3,11 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Reglas globales para la gestión de tenantes y gobernanza
     match /_gl_tenants/{tenantId} {
-      allow read, write: if true; // Permitir temporalmente para desarrollo. En producción requiere validación de rol.
+      allow read, write: if true;
+    }
+
+    match /_gl_modules/{moduleId} {
+      allow read, write: if true;
     }
 
     // Regla por defecto para el resto de la base de datos

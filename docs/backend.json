@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "Tenant": {
@@ -37,6 +36,37 @@
         }
       },
       "required": ["name", "country", "status", "planId"]
+    },
+    "Module": {
+      "title": "Module",
+      "description": "Representa un módulo o micro-frontend disponible en la plataforma.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "remoteUrl": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "inactive"]
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["name", "version", "remoteUrl", "status"]
     }
   },
   "auth": {
@@ -46,6 +76,10 @@
     "/_gl_tenants/{tenantId}": {
       "schema": "Tenant",
       "description": "Colección global de tenantes registrados en la plataforma."
+    },
+    "/_gl_modules/{moduleId}": {
+      "schema": "Module",
+      "description": "Catálogo global de módulos registrados."
     }
   }
 }
