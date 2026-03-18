@@ -7,13 +7,10 @@ import { ClipboardList, Sparkles, AlertTriangle, Info, Clock, User } from "lucid
 import { analyzeAuditLogs } from "@/ai/flows/analyze-audit-logs";
 
 export default async function AuditLogPage() {
-  // In a real app, this would be a client component using a Server Action trigger, 
-  // but for the static design demo, we'll simulate the AI input structure.
-  
   const getActionBadge = (action: string) => {
-    if (action.includes('CREATE')) return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">CREATE</Badge>;
-    if (action.includes('UPDATE')) return <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">UPDATE</Badge>;
-    if (action.includes('DELETE') || action.includes('SUSPEND')) return <Badge className="bg-red-500/10 text-red-500 border-red-500/20">DANGER</Badge>;
+    if (action.includes('CREATE')) return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">CREAR</Badge>;
+    if (action.includes('UPDATE')) return <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20">ACTUALIZAR</Badge>;
+    if (action.includes('DELETE') || action.includes('SUSPEND')) return <Badge className="bg-red-500/10 text-red-500 border-red-500/20">PELIGRO</Badge>;
     return <Badge variant="secondary">{action}</Badge>;
   };
 
@@ -21,12 +18,12 @@ export default async function AuditLogPage() {
     <div className="p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Audit Logs</h1>
-          <p className="text-muted-foreground">Global record of administrative actions for platform compliance.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Registros de Auditoría</h1>
+          <p className="text-muted-foreground">Registro global de acciones administrativas para cumplimiento normativo.</p>
         </div>
         <Button variant="outline" className="gap-2 border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary">
           <Sparkles className="h-4 w-4" />
-          AI Security Analysis
+          Análisis de Seguridad IA
         </Button>
       </div>
 
@@ -35,11 +32,11 @@ export default async function AuditLogPage() {
           <Table>
             <TableHeader className="bg-muted/50">
               <TableRow>
-                <TableHead>Timestamp</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Administrator</TableHead>
-                <TableHead>Target Entity</TableHead>
-                <TableHead>Entity ID</TableHead>
+                <TableHead>Marca de Tiempo</TableHead>
+                <TableHead>Acción</TableHead>
+                <TableHead>Administrador</TableHead>
+                <TableHead>Entidad Objetivo</TableHead>
+                <TableHead>ID de Entidad</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -48,7 +45,7 @@ export default async function AuditLogPage() {
                   <TableCell className="text-xs text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Clock className="h-3 w-3" />
-                      {new Date(log.timestamp).toLocaleString()}
+                      {new Date(log.timestamp).toLocaleString('es-ES')}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -63,7 +60,7 @@ export default async function AuditLogPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm">{log.entity}</span>
+                    <span className="text-sm">{log.entity === 'Tenant' ? 'Tenante' : log.entity === 'Subscription' ? 'Suscripción' : log.entity}</span>
                   </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {log.entityId}
@@ -79,24 +76,24 @@ export default async function AuditLogPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-bold flex items-center gap-2 text-primary">
                 <Sparkles className="h-4 w-4" />
-                AI Insight Summary
+                Resumen IA
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Platform governance activity is consistent with standard operating procedures. No critical escalation patterns detected in the last 24 hours.
+                La actividad de gobernanza es consistente con los procedimientos operativos estándar. No se detectaron patrones críticos en las últimas 24 horas.
               </p>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  Anomalies Detected
+                  Anomalías Detectadas
                 </div>
                 <div className="flex items-center gap-2 text-xs text-amber-500">
                   <AlertTriangle className="h-3 w-3" />
-                  Multiple plan updates (3) for Global Ltd
+                  Múltiples cambios de plan (3) para Global Ltd
                 </div>
                 <div className="flex items-center gap-2 text-xs text-blue-500">
                   <Info className="h-3 w-3" />
-                  New tenant provisioning peaked at 10:00 AM
+                  Pico de nuevas provisiones a las 10:00 AM
                 </div>
               </div>
             </CardContent>
@@ -104,19 +101,19 @@ export default async function AuditLogPage() {
 
           <Card className="border-border/50 bg-card/50">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold">Log Retention</CardTitle>
+              <CardTitle className="text-sm font-bold">Retención de Logs</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Storage Used</span>
+                  <span className="text-muted-foreground">Espacio Usado</span>
                   <span className="font-medium">1.2 GB</span>
                 </div>
                 <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-primary w-[30%]" />
                 </div>
                 <p className="text-[10px] text-muted-foreground">
-                  Logs are retained for 365 days per compliance policy P-102.
+                  Los logs se conservan durante 365 días según la política P-102.
                 </p>
               </div>
             </CardContent>

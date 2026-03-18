@@ -4,11 +4,11 @@ import Link from "next/link";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const navItems = [
-    { name: "Dashboard", icon: LayoutDashboard, href: "/admin" },
-    { name: "Tenants", icon: Users, href: "/admin/tenants" },
-    { name: "Modules", icon: Box, href: "/admin/modules" },
-    { name: "Plans", icon: CreditCard, href: "/admin/plans" },
-    { name: "Audit Logs", icon: ClipboardList, href: "/admin/audit" },
+    { name: "Tablero", icon: LayoutDashboard, href: "/admin" },
+    { name: "Tenantes", icon: Users, href: "/admin/tenants" },
+    { name: "Módulos", icon: Box, href: "/admin/modules" },
+    { name: "Planes", icon: CreditCard, href: "/admin/plans" },
+    { name: "Auditoría", icon: ClipboardList, href: "/admin/audit" },
   ];
 
   return (
@@ -42,7 +42,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <SidebarFooter className="border-t border-sidebar-border/50 p-4">
             <SidebarMenuButton className="text-muted-foreground hover:text-foreground">
               <LogOut className="h-5 w-5" />
-              <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
+              <span className="group-data-[collapsible=icon]:hidden">Cerrar Sesión</span>
             </SidebarMenuButton>
           </SidebarFooter>
         </Sidebar>
@@ -52,12 +52,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <div className="h-4 w-px bg-border/50" />
-              <h2 className="text-sm font-medium text-muted-foreground">Platform Governance</h2>
+              <h2 className="text-sm font-medium text-muted-foreground">Gobernanza de Plataforma</h2>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                <span className="text-xs font-bold uppercase tracking-wider">Admin Mode</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Modo Admin</span>
               </div>
             </div>
           </header>

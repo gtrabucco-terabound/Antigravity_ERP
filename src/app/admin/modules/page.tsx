@@ -9,12 +9,12 @@ export default function ModulesPage() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Module Catalog</h1>
-          <p className="text-muted-foreground">Global micro-frontend registry for tenant deployment.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Catálogo de Módulos</h1>
+          <p className="text-muted-foreground">Registro global de micro-frontends para despliegue de tenantes.</p>
         </div>
         <Button className="gap-2">
           <PlusCircle className="h-4 w-4" />
-          Register New Module
+          Registrar Nuevo Módulo
         </Button>
       </div>
 
@@ -27,7 +27,7 @@ export default function ModulesPage() {
                   <Box className="h-5 w-5 text-primary" />
                 </div>
                 <Badge variant={module.status === 'active' ? 'default' : 'secondary'}>
-                  {module.status.toUpperCase()}
+                  {module.status === 'active' ? 'ACTIVO' : 'INACTIVO'}
                 </Badge>
               </div>
               <CardTitle className="text-xl">{module.name}</CardTitle>
@@ -35,12 +35,12 @@ export default function ModulesPage() {
             </CardHeader>
             <CardContent className="space-y-4 flex-1">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Version</span>
+                <span className="text-muted-foreground">Versión</span>
                 <Badge variant="outline" className="font-mono">{module.version}</Badge>
               </div>
               
               <div className="space-y-2">
-                <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Source Remote</span>
+                <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Origen Remoto</span>
                 <div className="flex items-center gap-2 p-2 rounded bg-background/50 border border-border text-xs font-mono truncate">
                   <Link2 className="h-3 w-3 shrink-0" />
                   {module.remoteUrl}
@@ -49,7 +49,7 @@ export default function ModulesPage() {
 
               {module.dependencies.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Dependencies</span>
+                  <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Dependencias</span>
                   <div className="flex flex-wrap gap-1">
                     {module.dependencies.map(dep => (
                       <Badge key={dep} variant="secondary" className="text-[10px] h-5">{dep}</Badge>
@@ -61,11 +61,11 @@ export default function ModulesPage() {
             <CardFooter className="pt-0 border-t border-border/20 bg-muted/20 flex gap-2 p-4">
               <Button variant="outline" size="sm" className="flex-1 gap-2">
                 <Code2 className="h-3.5 w-3.5" />
-                Inspect
+                Inspeccionar
               </Button>
               <Button variant="secondary" size="sm" className="flex-1 gap-2">
                 <RefreshCcw className="h-3.5 w-3.5" />
-                Update
+                Actualizar
               </Button>
             </CardFooter>
           </Card>

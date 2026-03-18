@@ -9,12 +9,12 @@ export default function PlansPage() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Subscription Plans</h1>
-          <p className="text-muted-foreground">Define and price global tier structures for tenants.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Planes de Suscripción</h1>
+          <p className="text-muted-foreground">Definir estructuras de niveles y precios globales.</p>
         </div>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
-          Create Global Plan
+          Crear Plan Global
         </Button>
       </div>
 
@@ -28,33 +28,33 @@ export default function PlansPage() {
             )}
             <CardHeader>
               <CardTitle className="text-2xl">{plan.name}</CardTitle>
-              <CardDescription>Plan ID: {plan.id}</CardDescription>
+              <CardDescription>ID del Plan: {plan.id}</CardDescription>
               <div className="mt-4 flex items-baseline gap-1">
                 <span className="text-4xl font-bold">${plan.price}</span>
-                <span className="text-muted-foreground">/mo</span>
+                <span className="text-muted-foreground">/mes</span>
               </div>
             </CardHeader>
             <CardContent className="space-y-6 flex-1">
               <div className="space-y-3">
-                <div className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Modules Included</div>
+                <div className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Módulos Incluidos</div>
                 <div className="grid gap-2">
                   {plan.modulesIncluded.map((modId) => (
                     <div key={modId} className="flex items-center gap-2 text-sm">
                       <div className="h-5 w-5 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
                         <Check className="h-3 w-3" />
                       </div>
-                      {modId.split('_')[1].toUpperCase()} Core
+                      {modId.split('_')[1].toUpperCase()} Núcleo
                     </div>
                   ))}
                 </div>
               </div>
 
               <div className="space-y-3">
-                <div className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Usage Limits</div>
+                <div className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Límites de Uso</div>
                 <div className="grid gap-2">
                   {Object.entries(plan.limits).map(([key, value]) => (
                     <div key={key} className="flex justify-between text-sm py-1 border-b border-border/30">
-                      <span className="text-muted-foreground capitalize">{key}</span>
+                      <span className="text-muted-foreground capitalize">{key === 'users' ? 'usuarios' : key === 'storage' ? 'almacenamiento' : key}</span>
                       <span className="font-semibold">{value}</span>
                     </div>
                   ))}
@@ -64,7 +64,7 @@ export default function PlansPage() {
             <CardFooter className="p-6 pt-0">
               <Button variant={plan.id === 'plan_enterprise' ? 'default' : 'outline'} className="w-full gap-2">
                 <Settings2 className="h-4 w-4" />
-                Configure Tier
+                Configurar Nivel
               </Button>
             </CardFooter>
           </Card>

@@ -46,22 +46,22 @@ export interface AuditLog {
 }
 
 export const MOCK_MODULES: ModuleCatalog[] = [
-  { id: 'mod_crm', name: 'CRM Core', version: '1.2.0', remoteUrl: 'https://cdn.terabound.com/modules/crm', dependencies: [], status: 'active' },
-  { id: 'mod_fin', name: 'Financials', version: '2.0.4', remoteUrl: 'https://cdn.terabound.com/modules/finance', dependencies: [], status: 'active' },
-  { id: 'mod_inv', name: 'Inventory Pro', version: '1.1.0', remoteUrl: 'https://cdn.terabound.com/modules/inventory', dependencies: ['mod_fin'], status: 'active' },
-  { id: 'mod_hr', name: 'HR Management', version: '1.0.5', remoteUrl: 'https://cdn.terabound.com/modules/hr', dependencies: [], status: 'inactive' },
+  { id: 'mod_crm', name: 'CRM Núcleo', version: '1.2.0', remoteUrl: 'https://cdn.terabound.com/modules/crm', dependencies: [], status: 'active' },
+  { id: 'mod_fin', name: 'Finanzas', version: '2.0.4', remoteUrl: 'https://cdn.terabound.com/modules/finance', dependencies: [], status: 'active' },
+  { id: 'mod_inv', name: 'Inventario Pro', version: '1.1.0', remoteUrl: 'https://cdn.terabound.com/modules/inventory', dependencies: ['mod_fin'], status: 'active' },
+  { id: 'mod_hr', name: 'Gestión RRHH', version: '1.0.5', remoteUrl: 'https://cdn.terabound.com/modules/hr', dependencies: [], status: 'inactive' },
 ];
 
 export const MOCK_PLANS: Plan[] = [
-  { id: 'plan_starter', name: 'Starter', price: 49, modulesIncluded: ['mod_crm'], limits: { users: 5, storage: '10GB' } },
-  { id: 'plan_business', name: 'Business', price: 199, modulesIncluded: ['mod_crm', 'mod_fin'], limits: { users: 20, storage: '100GB' } },
-  { id: 'plan_enterprise', name: 'Enterprise', price: 999, modulesIncluded: ['mod_crm', 'mod_fin', 'mod_inv'], limits: { users: 1000, storage: 'Unlimited' } },
+  { id: 'plan_starter', name: 'Inicial', price: 49, modulesIncluded: ['mod_crm'], limits: { users: 5, storage: '10GB' } },
+  { id: 'plan_business', name: 'Negocios', price: 199, modulesIncluded: ['mod_crm', 'mod_fin'], limits: { users: 20, storage: '100GB' } },
+  { id: 'plan_enterprise', name: 'Corporativo', price: 999, modulesIncluded: ['mod_crm', 'mod_fin', 'mod_inv'], limits: { users: 1000, storage: 'Ilimitado' } },
 ];
 
 export const MOCK_TENANTS: Tenant[] = [
-  { id: 'ten_001', name: 'Acme Corp', country: 'USA', status: 'active', planId: 'plan_enterprise', activeModules: ['mod_crm', 'mod_fin', 'mod_inv'], createdAt: '2023-10-12T10:00:00Z' },
-  { id: 'ten_002', name: 'Globex Ltd', country: 'UK', status: 'active', planId: 'plan_business', activeModules: ['mod_crm', 'mod_fin'], createdAt: '2023-11-05T14:30:00Z' },
-  { id: 'ten_003', name: 'Soylent Co', country: 'Germany', status: 'suspended', planId: 'plan_starter', activeModules: ['mod_crm'], createdAt: '2024-01-20T09:15:00Z' },
+  { id: 'ten_001', name: 'Acme Corp', country: 'España', status: 'active', planId: 'plan_enterprise', activeModules: ['mod_crm', 'mod_fin', 'mod_inv'], createdAt: '2023-10-12T10:00:00Z' },
+  { id: 'ten_002', name: 'Globex Ltd', country: 'México', status: 'active', planId: 'plan_business', activeModules: ['mod_crm', 'mod_fin'], createdAt: '2023-11-05T14:30:00Z' },
+  { id: 'ten_003', name: 'Soylent Co', country: 'Colombia', status: 'suspended', planId: 'plan_starter', activeModules: ['mod_crm'], createdAt: '2024-01-20T09:15:00Z' },
 ];
 
 export const MOCK_AUDIT_LOGS: AuditLog[] = [

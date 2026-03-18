@@ -12,24 +12,24 @@ export default function TenantsPage() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Tenants</h1>
-          <p className="text-muted-foreground">Manage multi-tenant isolation and account lifecycle.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Tenantes</h1>
+          <p className="text-muted-foreground">Gestionar aislamiento y ciclo de vida de las cuentas.</p>
         </div>
         <Button className="gap-2">
           <UserPlus className="h-4 w-4" />
-          Provision New Tenant
+          Provisionar Tenante
         </Button>
       </div>
 
       <div className="flex items-center gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search tenants by name, ID or country..." className="pl-10 max-w-md bg-card" />
+          <Input placeholder="Buscar por nombre, ID o país..." className="pl-10 max-w-md bg-card" />
         </div>
         <div className="flex items-center gap-2">
-           <Badge variant="outline" className="px-3 py-1 bg-card">All: {MOCK_TENANTS.length}</Badge>
-           <Badge variant="outline" className="px-3 py-1 bg-green-500/10 text-green-500 border-green-500/20">Active: {MOCK_TENANTS.filter(t => t.status === 'active').length}</Badge>
-           <Badge variant="outline" className="px-3 py-1 bg-red-500/10 text-red-500 border-red-500/20">Suspended: {MOCK_TENANTS.filter(t => t.status === 'suspended').length}</Badge>
+           <Badge variant="outline" className="px-3 py-1 bg-card">Todos: {MOCK_TENANTS.length}</Badge>
+           <Badge variant="outline" className="px-3 py-1 bg-green-500/10 text-green-500 border-green-500/20">Activos: {MOCK_TENANTS.filter(t => t.status === 'active').length}</Badge>
+           <Badge variant="outline" className="px-3 py-1 bg-red-500/10 text-red-500 border-red-500/20">Suspendidos: {MOCK_TENANTS.filter(t => t.status === 'suspended').length}</Badge>
         </div>
       </div>
 
@@ -37,13 +37,13 @@ export default function TenantsPage() {
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="w-[250px]">Tenant Name</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Region</TableHead>
+              <TableHead className="w-[250px]">Nombre del Tenante</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead>Región</TableHead>
               <TableHead>Plan</TableHead>
-              <TableHead>Modules</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Módulos</TableHead>
+              <TableHead>Creado</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -59,12 +59,12 @@ export default function TenantsPage() {
                   {tenant.status === 'active' ? (
                     <div className="flex items-center gap-1.5 text-green-500">
                       <CheckCircle2 className="h-3.5 w-3.5" />
-                      <span className="text-xs font-semibold uppercase">Active</span>
+                      <span className="text-xs font-semibold uppercase">Activo</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5 text-red-500">
                       <ShieldAlert className="h-3.5 w-3.5" />
-                      <span className="text-xs font-semibold uppercase">Suspended</span>
+                      <span className="text-xs font-semibold uppercase">Suspendido</span>
                     </div>
                   )}
                 </TableCell>
@@ -104,14 +104,14 @@ export default function TenantsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem>Edit Configuration</DropdownMenuItem>
-                      <DropdownMenuItem>Manage Subscriptions</DropdownMenuItem>
+                      <DropdownMenuItem>Ver Detalles</DropdownMenuItem>
+                      <DropdownMenuItem>Editar Configuración</DropdownMenuItem>
+                      <DropdownMenuItem>Gestionar Suscripciones</DropdownMenuItem>
                       <DropdownMenuSeparator />
                       {tenant.status === 'active' ? (
-                        <DropdownMenuItem className="text-destructive">Suspend Tenant</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive">Suspender Tenante</DropdownMenuItem>
                       ) : (
-                        <DropdownMenuItem className="text-green-500">Reactivate Tenant</DropdownMenuItem>
+                        <DropdownMenuItem className="text-green-500">Reactivar Tenante</DropdownMenuItem>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>

@@ -17,31 +17,30 @@ export default function DashboardPage() {
   }, 0);
 
   useEffect(() => {
-    // Formatting revenue only on the client to avoid hydration mismatch
-    setRevenueString(`$${totalRevenue.toLocaleString()}/mo`);
+    setRevenueString(`$${totalRevenue.toLocaleString('es-ES')}/mes`);
   }, [totalRevenue]);
 
   const revenueData = [
-    { month: 'Jan', revenue: 1200 },
+    { month: 'Ene', revenue: 1200 },
     { month: 'Feb', revenue: 1800 },
     { month: 'Mar', revenue: 2400 },
-    { month: 'Apr', revenue: 3100 },
+    { month: 'Abr', revenue: 3100 },
     { month: 'May', revenue: 3800 },
     { month: 'Jun', revenue: totalRevenue },
   ];
 
   const stats = [
-    { label: "Total Tenants", value: MOCK_TENANTS.length.toString(), icon: Users, trend: "+12%", color: "text-blue-500" },
-    { label: "Active Subscriptions", value: activeTenants.toString(), icon: Zap, trend: "+5%", color: "text-green-500" },
-    { label: "Global Revenue", value: revenueString || `$${totalRevenue}/mo`, icon: Globe, trend: "+24%", color: "text-primary" },
-    { label: "Active Modules", value: totalModules.toString(), icon: Package, trend: "Stable", color: "text-purple-500" },
+    { label: "Total de Tenantes", value: MOCK_TENANTS.length.toString(), icon: Users, trend: "+12%", color: "text-blue-500" },
+    { label: "Suscripciones Activas", value: activeTenants.toString(), icon: Zap, trend: "+5%", color: "text-green-500" },
+    { label: "Ingresos Globales", value: revenueString || `$${totalRevenue}/mes`, icon: Globe, trend: "+24%", color: "text-primary" },
+    { label: "Módulos Activos", value: totalModules.toString(), icon: Package, trend: "Estable", color: "text-purple-500" },
   ];
 
   return (
     <div className="p-8 space-y-8">
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold tracking-tight">Platform Overview</h1>
-        <p className="text-muted-foreground">Real-time governance dashboard for Terabound ERP.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Vista General</h1>
+        <p className="text-muted-foreground">Panel de gobernanza en tiempo real para Terabound ERP.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -58,7 +57,7 @@ export default function DashboardPage() {
                   <ArrowUpRight className="h-3 w-3" />
                   {stat.trend}
                 </span>
-                <span className="ml-1">since last month</span>
+                <span className="ml-1">desde el mes pasado</span>
               </div>
             </CardContent>
           </Card>
@@ -68,8 +67,8 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 border-border/50 bg-card/50">
           <CardHeader>
-            <CardTitle>Platform Revenue Growth</CardTitle>
-            <CardDescription>Estimated monthly recurring revenue (MRR) across all tenants.</CardDescription>
+            <CardTitle>Crecimiento de Ingresos</CardTitle>
+            <CardDescription>Ingresos mensuales recurrentes (MRR) estimados en todos los tenantes.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full">
@@ -91,16 +90,16 @@ export default function DashboardPage() {
 
         <Card className="border-border/50 bg-card/50">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest governance actions from administrators.</CardDescription>
+            <CardTitle>Actividad Reciente</CardTitle>
+            <CardDescription>Últimas acciones de gobernanza de los administradores.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
               {[
-                { action: "Tenant Created", entity: "Acme Corp", time: "2h ago", icon: Users },
-                { action: "Plan Updated", entity: "Globex Ltd", time: "4h ago", icon: Activity },
-                { action: "Module Active", entity: "Financials", time: "8h ago", icon: Zap },
-                { action: "Security Audit", entity: "Manual Review", time: "1d ago", icon: ShieldCheck },
+                { action: "Tenante Creado", entity: "Acme Corp", time: "hace 2h", icon: Users },
+                { action: "Plan Actualizado", entity: "Globex Ltd", time: "hace 4h", icon: Activity },
+                { action: "Módulo Activado", entity: "Finanzas", time: "hace 8h", icon: Zap },
+                { action: "Auditoría de Seguridad", entity: "Revisión Manual", time: "hace 1d", icon: ShieldCheck },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-4">
                   <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-muted border border-border">

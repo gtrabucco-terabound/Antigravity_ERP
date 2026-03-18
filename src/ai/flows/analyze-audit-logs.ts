@@ -1,31 +1,27 @@
 'use server';
 /**
- * @fileOverview This file contains the Genkit flow for analyzing global audit logs.
- *
- * - analyzeAuditLogs - A function that provides an AI-powered summary of audit logs.
- * - AnalyzeAuditLogsInput - The input type for the analyzeAuditLogs function.
- * - AnalyzeAuditLogsOutput - The return type for the analyzeAuditLogs function.
+ * @fileOverview Este archivo contiene el flujo Genkit para analizar registros de auditoría globales.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const AuditLogEntrySchema = z.object({
-  action: z.string().describe('The action performed.'),
-  adminId: z.string().describe('The ID of the administrator who performed the action.'),
-  entity: z.string().describe('The type of entity affected (e.g., Tenant, Module, Plan).'),
-  entityId: z.string().describe('The ID of the entity affected.'),
-  timestamp: z.string().datetime().describe('The timestamp of the action in ISO 8601 format.'),
+  action: z.string().describe('La acción realizada.'),
+  adminId: z.string().describe('El ID del administrador que realizó la acción.'),
+  entity: z.string().describe('El tipo de entidad afectada (ej., Tenante, Módulo, Plan).'),
+  entityId: z.string().describe('El ID de la entidad afectada.'),
+  timestamp: z.string().datetime().describe('La marca de tiempo de la acción en formato ISO 8601.'),
 });
 
 const AnalyzeAuditLogsInputSchema = z.object({
-  auditLogs: z.array(AuditLogEntrySchema).describe('An array of global audit log entries to analyze.'),
+  auditLogs: z.array(AuditLogEntrySchema).describe('Un array de entradas de log de auditoría global para analizar.'),
 });
 export type AnalyzeAuditLogsInput = z.infer<typeof AnalyzeAuditLogsInputSchema>;
 
 const AnalyzeAuditLogsOutputSchema = z.object({
-  summary: z.string().describe('A concise summary of critical actions and platform governance activity.'),
-  unusualPatterns: z.array(z.string()).describe('A list of any unusual or suspicious patterns identified in the audit logs.'),
+  summary: z.string().describe('Un resumen conciso de acciones críticas y actividad de gobernanza de la plataforma.'),
+  unusualPatterns: z.array(z.string()).describe('Una lista de cualquier patrón inusual o sospechoso identificado.'),
 });
 export type AnalyzeAuditLogsOutput = z.infer<typeof AnalyzeAuditLogsOutputSchema>;
 
@@ -37,18 +33,17 @@ const analyzeAuditLogsPrompt = ai.definePrompt({
   name: 'analyzeAuditLogsPrompt',
   input: {schema: AnalyzeAuditLogsInputSchema},
   output: {schema: AnalyzeAuditLogsOutputSchema},
-  prompt: `You are an AI assistant acting as a security analyst and platform governance expert for the Terabound ERP platform.
-Your task is to analyze the provided global audit log entries and provide a concise summary of critical actions and highlight any unusual patterns or security concerns.
+  prompt: `Eres un asistente de IA que actúa como analista de seguridad y experto en gobernanza de la plataforma ERP "Terabound".
+Tu tarea es analizar las entradas de log de auditoría proporcionadas y ofrecer un resumen conciso en español de las acciones críticas y resaltar cualquier patrón inusual o preocupación de seguridad.
 
-Consider the following when analyzing:
-- Look for common administrative actions like tenant creation, suspension, module activation, plan changes, etc.
-- Identify any repeated actions by the same admin within a short period.
-- Look for actions that might indicate unauthorized access or unusual administrative behavior.
-- Pay attention to changes in critical entities like _gl_tenants, _gl_module_catalog, _gl_plans, and _gl_subscriptions.
+Considera lo siguiente al analizar:
+- Busca acciones administrativas comunes como creación de tenantes, suspensiones, activación de módulos, cambios de plan, etc.
+- Identifica cualquier acción repetida por el mismo admin en un corto periodo.
+- Busca acciones que puedan indicar acceso no autorizado o comportamiento administrativo inusual.
 
-Audit Logs:
+Registros de Auditoría:
 {{#each auditLogs}}
-  - Action: {{{this.action}}}, Admin: {{{this.adminId}}}, Entity: {{{this.entity}}}:{{{this.entityId}}}, Timestamp: {{{this.timestamp}}}
+  - Acción: {{{this.action}}}, Admin: {{{this.adminId}}}, Entidad: {{{this.entity}}}:{{{this.entityId}}}, Fecha: {{{this.timestamp}}}
 {{/each}}`,
 });
 
