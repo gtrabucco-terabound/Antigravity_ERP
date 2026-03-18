@@ -17,9 +17,9 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   RefreshCcw, 
-  Database,
   Building,
-  Search
+  Search,
+  MoreHorizontal
 } from "lucide-react";
 import { 
   Area, 
@@ -38,7 +38,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Defer localized formatting to client-side to avoid hydration mismatch
+    // Formateo seguro para evitar errores de hidratación
     setStatsValue(["1,284", "1,142", "943", "$124,500"]);
   }, []);
 
@@ -61,7 +61,9 @@ export default function DashboardPage() {
       subValue: "v.s mes pasado 1,146", 
       trend: "+12%", 
       trendUp: true, 
-      icon: Building 
+      icon: Building,
+      iconBg: "bg-primary/10",
+      iconColor: "text-primary"
     },
     { 
       label: "TENANTES ACTIVOS", 
@@ -69,7 +71,9 @@ export default function DashboardPage() {
       subValue: "88.9% Tasa de actividad", 
       trend: "+5%", 
       trendUp: true, 
-      icon: Zap 
+      icon: Zap,
+      iconBg: "bg-blue-500/10",
+      iconColor: "text-blue-500"
     },
     { 
       label: "SUSCRIPCIONES", 
@@ -77,7 +81,9 @@ export default function DashboardPage() {
       subValue: "24 Nuevas esta semana", 
       trend: "+8.2%", 
       trendUp: true, 
-      icon: CreditCard 
+      icon: CreditCard,
+      iconBg: "bg-amber-500/10",
+      iconColor: "text-amber-500"
     },
     { 
       label: "INGRESOS TOTALES", 
@@ -85,7 +91,9 @@ export default function DashboardPage() {
       subValue: "Meta: $150k", 
       trend: "+15%", 
       trendUp: true, 
-      icon: DollarSign 
+      icon: DollarSign,
+      iconBg: "bg-emerald-500/10",
+      iconColor: "text-emerald-500"
     },
   ];
 
@@ -94,49 +102,54 @@ export default function DashboardPage() {
       title: "Acme Corp activó el módulo Global CDN", 
       time: "hace 2 minutos", 
       icon: CheckCircle2, 
-      color: "text-primary" 
+      color: "text-primary",
+      bg: "bg-primary/10"
     },
     { 
       title: "Registro de nuevo tenante: Lumina Systems", 
       time: "hace 45 minutos", 
       icon: Users, 
-      color: "text-blue-500" 
+      color: "text-blue-500",
+      bg: "bg-blue-500/10"
     },
     { 
       title: "Alerta de Carga Alta en nodo Cluster: us-east-1a", 
       time: "hace 1 hora", 
       icon: AlertTriangle, 
-      color: "text-amber-500" 
+      color: "text-amber-500",
+      bg: "bg-amber-500/10"
     },
     { 
       title: "Renovación de suscripción para CloudScale Inc.", 
       time: "hace 3 horas", 
       icon: CreditCard, 
-      color: "text-purple-500" 
+      color: "text-purple-500",
+      bg: "bg-purple-500/10"
     },
     { 
       title: "Backup del sistema completado con éxito", 
       time: "hace 5 horas", 
       icon: RefreshCcw, 
-      color: "text-muted-foreground" 
+      color: "text-muted-foreground",
+      bg: "bg-muted/20"
     },
   ];
 
   if (!isMounted) return null;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
+    <div className="space-y-8 animate-in fade-in duration-700 max-w-[1600px] mx-auto">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-4xl font-bold tracking-tight text-foreground">Vista General del Sistema</h1>
           <p className="text-muted-foreground text-lg">Rendimiento de infraestructura y suscripciones en tiempo real.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="h-11 px-6 rounded-xl border-border/50 bg-muted/20 gap-2 hover:bg-muted/40">
+          <Button variant="outline" className="h-10 px-5 rounded-lg border-border bg-card/50 gap-2 hover:bg-card">
             <Download className="h-4 w-4" />
             Exportar CSV
           </Button>
-          <Button className="h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 gap-2 shadow-lg shadow-primary/20">
+          <Button className="h-10 px-5 rounded-lg bg-primary text-primary-foreground font-bold hover:bg-primary/90 gap-2 shadow-lg shadow-primary/20">
             <Plus className="h-4 w-4" />
             Nuevo Tenante
           </Button>
@@ -145,23 +158,23 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
-          <Card key={i} className="border-border/50 bg-card/40 backdrop-blur-sm relative overflow-hidden group hover:border-primary/30 transition-all duration-300">
+          <Card key={i} className="border-border/50 bg-card hover:border-primary/30 transition-all duration-300 shadow-xl shadow-black/20">
             <CardHeader className="flex flex-row items-start justify-between pb-2">
               <div className="space-y-1">
                 <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">{stat.label}</CardTitle>
-                <div className="text-3xl font-bold tracking-tight">{stat.value}</div>
+                <div className="text-3xl font-bold tracking-tight mt-2">{stat.value}</div>
               </div>
-              <div className="p-2.5 rounded-xl bg-muted/30 group-hover:bg-primary/10 transition-colors">
-                <stat.icon className="h-5 w-5 text-primary" />
+              <div className={`p-2 rounded-lg ${stat.iconBg}`}>
+                <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
               </div>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 mt-2">
-                <Badge variant="outline" className={`rounded-md px-1.5 py-0 border-none flex items-center gap-1 ${stat.trendUp ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+                <div className={`flex items-center gap-1 text-[11px] font-bold ${stat.trendUp ? 'text-primary' : 'text-destructive'}`}>
                   {stat.trendUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                  <span className="text-[11px] font-bold">{stat.trend}</span>
-                </Badge>
-                <span className="text-xs text-muted-foreground">{stat.subValue}</span>
+                  <span>{stat.trend}</span>
+                </div>
+                <span className="text-[11px] text-muted-foreground">{stat.subValue}</span>
               </div>
             </CardContent>
           </Card>
@@ -169,11 +182,11 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 border-border/50 bg-card/40 backdrop-blur-sm">
+        <Card className="lg:col-span-2 border-border/50 bg-card shadow-xl shadow-black/20">
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="space-y-1">
               <CardTitle className="text-xl font-bold">Resumen de Ingresos</CardTitle>
-              <p className="text-sm text-muted-foreground font-medium">Rendimiento de crecimiento en los últimos 30 días</p>
+              <p className="text-sm text-muted-foreground">Crecimiento de ingresos en el periodo seleccionado</p>
             </div>
             <Select defaultValue="30">
               <SelectTrigger className="w-[140px] h-9 bg-muted/30 border-none rounded-lg text-xs font-semibold">
@@ -253,24 +266,21 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/50 bg-card/40 backdrop-blur-sm flex flex-col">
+        <Card className="border-border/50 bg-card shadow-xl shadow-black/20 flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-8">
             <CardTitle className="text-xl font-bold">Actividad Reciente</CardTitle>
             <Button variant="link" className="text-primary font-bold text-xs p-0 h-auto">Ver Todo</Button>
           </CardHeader>
           <CardContent className="flex-1">
-            <div className="space-y-8">
+            <div className="space-y-8 relative before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-px before:bg-border/50">
               {activities.map((item, i) => (
-                <div key={i} className="flex gap-4 group">
-                  <div className="flex flex-col items-center">
-                    <div className={`p-2 rounded-xl bg-muted/30 group-hover:scale-110 transition-transform ${item.color}`}>
-                      <item.icon className="h-4 w-4" />
-                    </div>
-                    {i !== activities.length - 1 && <div className="w-px h-full bg-border/50 my-2" />}
+                <div key={i} className="flex gap-4 group relative">
+                  <div className={`z-10 p-2 rounded-full border border-background shadow-sm ${item.bg} ${item.color}`}>
+                    <item.icon className="h-4 w-4" />
                   </div>
                   <div className="space-y-1 pb-4">
                     <p className="text-sm font-semibold leading-tight text-foreground/90">{item.title}</p>
-                    <p className="text-xs text-muted-foreground font-medium">{item.time}</p>
+                    <p className="text-[11px] text-muted-foreground font-medium">{item.time}</p>
                   </div>
                 </div>
               ))}
@@ -279,20 +289,26 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <Card className="border-border/50 bg-card/40 backdrop-blur-sm overflow-hidden">
+      <Card className="border-border/50 bg-card shadow-xl shadow-black/20 overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-xl font-bold">Tenantes Activos</CardTitle>
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <input 
-              placeholder="Filtrar..." 
-              className="w-full pl-9 pr-4 h-9 bg-muted/30 border-none rounded-lg text-xs font-medium focus:ring-1 focus:ring-primary/30"
-            />
+          <div className="flex items-center gap-4">
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <input 
+                placeholder="Filtrar tenantes..." 
+                className="w-full pl-9 pr-4 h-9 bg-muted/30 border-none rounded-lg text-xs font-medium focus:ring-1 focus:ring-primary/30"
+              />
+            </div>
+            <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
           </div>
         </CardHeader>
-        <div className="p-8 pt-0">
-          <div className="text-sm text-muted-foreground italic">
-            Visualización detallada de la tabla en desarrollo...
+        <div className="p-8 pt-0 min-h-[100px] flex items-center justify-center border-t border-border/30">
+          <div className="text-sm text-muted-foreground italic flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Vista de tabla de tenantes en fase de implementación...
           </div>
         </div>
       </Card>
