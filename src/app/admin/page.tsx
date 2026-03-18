@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -65,43 +64,41 @@ export default function DashboardPage() {
 
   async function handleCreateTenant(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!firestore) return;
+    if (!firestore || isSubmitting) return;
 
     setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
+    const tenantName = formData.get('name') as string;
+    
     const tenantData = {
-      name: formData.get('name') as string,
+      name: tenantName,
       country: formData.get('country') as string,
       planId: formData.get('planId') as string,
       status: 'active',
       activeModules: [],
-      createdAt: serverTimestamp(),
+      createdAt: new Date().toISOString(), // Usamos ISOString para compatibilidad inmediata con la interfaz
     };
 
-    try {
-      const tenantsRef = collection(firestore, '_gl_tenants');
-      addDoc(tenantsRef, tenantData)
-        .then(() => {
-          setIsDialogOpen(false);
-          toast({
-            title: "Tenante Creado",
-            description: `El tenante ${tenantData.name} ha sido provisionado correctamente.`,
-          });
-        })
-        .catch(async (error) => {
-          const permissionError = new FirestorePermissionError({
-            path: tenantsRef.path,
-            operation: 'create',
-            requestResourceData: tenantData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
-        })
-        .finally(() => {
-          setIsSubmitting(false);
+    const tenantsRef = collection(firestore, '_gl_tenants');
+    
+    addDoc(tenantsRef, tenantData)
+      .then(() => {
+        setIsDialogOpen(false);
+        // Las notificaciones de éxito no se muestran por toast según lineamientos de UI
+        console.log('Tenante creado con éxito');
+      })
+      .catch(async (error: any) => {
+        console.error('Error al crear tenante:', error);
+        const permissionError = new FirestorePermissionError({
+          path: tenantsRef.path,
+          operation: 'create',
+          requestResourceData: tenantData,
         });
-    } catch (error) {
-      setIsSubmitting(false);
-    }
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   }
 
   const revenueData = [
