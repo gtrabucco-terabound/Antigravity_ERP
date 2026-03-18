@@ -1,5 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
-
 export interface Tenant {
   id: string;
   name: string;
@@ -25,15 +23,6 @@ export interface Plan {
   price: number;
   modulesIncluded: string[];
   limits: Record<string, any>;
-}
-
-export interface Subscription {
-  id: string;
-  tenantId: string;
-  planId: string;
-  status: 'active' | 'trial' | 'suspended';
-  startedAt: string;
-  expiresAt: string;
 }
 
 export interface AuditLog {
