@@ -18,7 +18,8 @@ import {
   AlertTriangle, 
   RefreshCcw, 
   Database,
-  Building
+  Building,
+  Search
 } from "lucide-react";
 import { 
   Area, 
@@ -33,9 +34,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function DashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
+  const [statsValue, setStatsValue] = useState<string[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
+    // Defer localized formatting to client-side to avoid hydration mismatch
+    setStatsValue(["1,284", "1,142", "943", "$124,500"]);
   }, []);
 
   const revenueData = [
@@ -53,7 +57,7 @@ export default function DashboardPage() {
   const stats = [
     { 
       label: "TOTAL DE TENANTES", 
-      value: "1,284", 
+      value: statsValue[0] || "...", 
       subValue: "v.s mes pasado 1,146", 
       trend: "+12%", 
       trendUp: true, 
@@ -61,7 +65,7 @@ export default function DashboardPage() {
     },
     { 
       label: "TENANTES ACTIVOS", 
-      value: "1,142", 
+      value: statsValue[1] || "...", 
       subValue: "88.9% Tasa de actividad", 
       trend: "+5%", 
       trendUp: true, 
@@ -69,7 +73,7 @@ export default function DashboardPage() {
     },
     { 
       label: "SUSCRIPCIONES", 
-      value: "943", 
+      value: statsValue[2] || "...", 
       subValue: "24 Nuevas esta semana", 
       trend: "+8.2%", 
       trendUp: true, 
@@ -77,7 +81,7 @@ export default function DashboardPage() {
     },
     { 
       label: "INGRESOS TOTALES", 
-      value: "$124,500", 
+      value: statsValue[3] || "...", 
       subValue: "Meta: $150k", 
       trend: "+15%", 
       trendUp: true, 
@@ -124,7 +128,7 @@ export default function DashboardPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-4xl font-bold tracking-tight">Vista General del Sistema</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Vista General del Sistema</h1>
           <p className="text-muted-foreground text-lg">Rendimiento de infraestructura y suscripciones en tiempo real.</p>
         </div>
         <div className="flex items-center gap-3">
