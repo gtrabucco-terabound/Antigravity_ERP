@@ -1,17 +1,25 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MOCK_TENANTS, MOCK_PLANS, MOCK_MODULES } from "@/app/lib/mock-data";
 import { Users, Globe, Package, Zap, ArrowUpRight, Activity, ShieldCheck } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 
 export default function DashboardPage() {
+  const [revenueString, setRevenueString] = useState<string | null>(null);
+
   const activeTenants = MOCK_TENANTS.filter(t => t.status === 'active').length;
   const totalModules = MOCK_MODULES.length;
   const totalRevenue = MOCK_TENANTS.reduce((acc, t) => {
     const plan = MOCK_PLANS.find(p => p.id === t.planId);
     return acc + (plan?.price || 0);
   }, 0);
+
+  useEffect(() => {
+    // Formatting revenue only on the client to avoid hydration mismatch
+    setRevenueString(`$${totalRevenue.toLocaleString()}/mo`);
+  }, [totalRevenue]);
 
   const revenueData = [
     { month: 'Jan', revenue: 1200 },
@@ -23,10 +31,10 @@ export default function DashboardPage() {
   ];
 
   const stats = [
-    { label: "Total Tenants", value: MOCK_TENANTS.length, icon: Users, trend: "+12%", color: "text-blue-500" },
-    { label: "Active Subscriptions", value: activeTenants, icon: Zap, trend: "+5%", color: "text-green-500" },
-    { label: "Global Revenue", value: `$${totalRevenue.toLocaleString()}/mo`, icon: Globe, trend: "+24%", color: "text-primary" },
-    { label: "Active Modules", value: totalModules, icon: Package, trend: "Stable", color: "text-purple-500" },
+    { label: "Total Tenants", value: MOCK_TENANTS.length.toString(), icon: Users, trend: "+12%", color: "text-blue-500" },
+    { label: "Active Subscriptions", value: activeTenants.toString(), icon: Zap, trend: "+5%", color: "text-green-500" },
+    { label: "Global Revenue", value: revenueString || `$${totalRevenue}/mo`, icon: Globe, trend: "+24%", color: "text-primary" },
+    { label: "Active Modules", value: totalModules.toString(), icon: Package, trend: "Stable", color: "text-purple-500" },
   ];
 
   return (
