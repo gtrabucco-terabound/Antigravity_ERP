@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -31,16 +32,77 @@ import {
   Tooltip as RechartsTooltip 
 } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useFirestore } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function DashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [statsValue, setStatsValue] = useState<string[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const firestore = useFirestore();
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsMounted(true);
-    // Formateo seguro para evitar errores de hidratación
     setStatsValue(["1,284", "1,142", "943", "$124,500"]);
   }, []);
+
+  async function handleCreateTenant(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!firestore) return;
+
+    setIsSubmitting(true);
+    const formData = new FormData(e.currentTarget);
+    const tenantData = {
+      name: formData.get('name') as string,
+      country: formData.get('country') as string,
+      planId: formData.get('planId') as string,
+      status: 'active',
+      activeModules: [],
+      createdAt: serverTimestamp(),
+    };
+
+    try {
+      const tenantsRef = collection(firestore, '_gl_tenants');
+      addDoc(tenantsRef, tenantData)
+        .then(() => {
+          setIsDialogOpen(false);
+          toast({
+            title: "Tenante Creado",
+            description: `El tenante ${tenantData.name} ha sido provisionado correctamente.`,
+          });
+        })
+        .catch(async (error) => {
+          const permissionError = new FirestorePermissionError({
+            path: tenantsRef.path,
+            operation: 'create',
+            requestResourceData: tenantData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        })
+        .finally(() => {
+          setIsSubmitting(false);
+        });
+    } catch (error) {
+      setIsSubmitting(false);
+    }
+  }
 
   const revenueData = [
     { date: '01 May', revenue: 45000 },
@@ -149,10 +211,56 @@ export default function DashboardPage() {
             <Download className="h-4 w-4" />
             Exportar CSV
           </Button>
-          <Button className="h-10 px-5 rounded-lg bg-primary text-primary-foreground font-bold hover:bg-primary/90 gap-2 shadow-lg shadow-primary/20">
-            <Plus className="h-4 w-4" />
-            Nuevo Tenante
-          </Button>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="h-10 px-5 rounded-lg bg-primary text-primary-foreground font-bold hover:bg-primary/90 gap-2 shadow-lg shadow-primary/20">
+                <Plus className="h-4 w-4" />
+                Nuevo Tenante
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px] bg-card border-border shadow-2xl">
+              <form onSubmit={handleCreateTenant}>
+                <DialogHeader>
+                  <DialogTitle className="text-primary">Provisionar Nuevo Tenante</DialogTitle>
+                  <DialogDescription>
+                    Complete la información para registrar una nueva organización en la plataforma.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Nombre de la Empresa</Label>
+                    <Input id="name" name="name" placeholder="Ej. Acme Corp" className="bg-muted/30 border-border" required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="country">País</Label>
+                    <Input id="country" name="country" placeholder="Ej. México" className="bg-muted/30 border-border" required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="planId">Plan Inicial</Label>
+                    <Select name="planId" defaultValue="plan_starter" required>
+                      <SelectTrigger className="bg-muted/30 border-border">
+                        <SelectValue placeholder="Seleccione un plan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="plan_starter">Inicial ($49/mes)</SelectItem>
+                        <SelectItem value="plan_business">Negocios ($199/mes)</SelectItem>
+                        <SelectItem value="plan_enterprise">Corporativo ($999/mes)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSubmitting}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" className="bg-primary text-primary-foreground font-bold" disabled={isSubmitting}>
+                    {isSubmitting ? "Provisionando..." : "Crear Tenante"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 

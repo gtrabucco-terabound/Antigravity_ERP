@@ -1,0 +1,51 @@
+
+{
+  "entities": {
+    "Tenant": {
+      "title": "Tenant",
+      "description": "Representa una organización o cliente independiente en la plataforma multi-inquilino.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nombre de la empresa o tenante."
+        },
+        "country": {
+          "type": "string",
+          "description": "País de operación principal."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "suspended"],
+          "description": "Estado actual del tenante."
+        },
+        "planId": {
+          "type": "string",
+          "description": "ID del plan de suscripción asociado."
+        },
+        "activeModules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Lista de IDs de módulos activados para este tenante."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Fecha de creación del registro."
+        }
+      },
+      "required": ["name", "country", "status", "planId"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com"]
+  },
+  "firestore": {
+    "/_gl_tenants/{tenantId}": {
+      "schema": "Tenant",
+      "description": "Colección global de tenantes registrados en la plataforma."
+    }
+  }
+}
