@@ -50,6 +50,9 @@ import { useFirestore, useCollection } from '@/firebase';
 import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { SubscriptionDialog } from '@/components/admin/SubscriptionDialog';
+import { TenantDialog } from '@/components/admin/TenantDialog';
+import { TenantUsersDialog } from '@/components/admin/TenantUsersDialog';
 
 interface Tenant {
   id: string;
@@ -70,24 +73,29 @@ interface Module {
 
 export default function TenantsPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [tempModules, setTempModules] = useState<string[]>([]);
+  const [isSubDialogOpen, setIsSubDialogOpen] = useState(false);
+  const [targetTenantId, setTargetTenantId] = useState<string | undefined>(undefined);
+  const [isTenantDialogOpen, setIsTenantDialogOpen] = useState(false);
+  const [tenantToEdit, setTenantToEdit] = useState<Tenant | null>(null);
+  const [isUsersDialogOpen, setIsUsersDialogOpen] = useState(false);
   
   const firestore = useFirestore();
 
   // Consulta de tenantes
   const tenantsQuery = useMemo(() => collection(firestore, '_gl_tenants'), [firestore]);
-  const { data: tenants, loading: loadingTenants } = useCollection<Tenant>(tenantsQuery);
+  const { data: tenants, loading: loadingTenants } = useCollection<Tenant>(tenantsQuery as any);
 
   // Consulta de módulos disponibles
   const modulesQuery = useMemo(() => collection(firestore, '_gl_modules'), [firestore]);
-  const { data: availableModules } = useCollection<Module>(modulesQuery);
+  const { data: availableModules } = useCollection<Module>(modulesQuery as any);
 
   // Filtrado
   const filteredTenants = useMemo(() => {
+    if (!tenants) return [];
     return tenants.filter(t => 
       t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -95,45 +103,23 @@ export default function TenantsPage() {
     );
   }, [tenants, searchTerm]);
 
-  const stats = useMemo(() => ({
-    total: tenants.length,
-    active: tenants.filter(t => t.status === 'active').length,
-    suspended: tenants.filter(t => t.status === 'suspended').length
-  }), [tenants]);
-
-  async function handleCreateTenant(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!firestore || isSubmitting) return;
-
-    setIsSubmitting(true);
-    const formData = new FormData(e.currentTarget);
-    
-    const tenantData = {
-      name: formData.get('name') as string,
-      country: formData.get('country') as string,
-      planId: formData.get('planId') as string,
-      status: 'active' as const,
-      activeModules: [],
-      createdAt: new Date().toISOString(),
+  const stats = useMemo(() => {
+    if (!tenants) return { total: 0, active: 0, suspended: 0 };
+    return {
+      total: tenants.length,
+      active: tenants.filter(t => t.status === 'active').length,
+      suspended: tenants.filter(t => t.status === 'suspended').length
     };
+  }, [tenants]);
 
-    const tenantsRef = collection(firestore, '_gl_tenants');
-    
-    addDoc(tenantsRef, tenantData)
-      .then(() => {
-        setIsDialogOpen(false);
-      })
-      .catch(async (error: any) => {
-        const permissionError = new FirestorePermissionError({
-          path: tenantsRef.path,
-          operation: 'create',
-          requestResourceData: tenantData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
+  function handleOpenCreateTenant() {
+    setTenantToEdit(null);
+    setIsTenantDialogOpen(true);
+  }
+
+  function handleOpenEditTenant(tenant: Tenant) {
+    setTenantToEdit(tenant);
+    setIsTenantDialogOpen(true);
   }
 
   function handleOpenEditModules(tenant: Tenant) {
@@ -185,63 +171,32 @@ export default function TenantsPage() {
     return plans[planId] || planId;
   };
 
+  const handleOpenSubscription = (tenantId: string) => {
+    setTargetTenantId(tenantId);
+    setIsSubDialogOpen(true);
+  };
+
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-4xl font-bold tracking-tight">Tenantes</h1>
-          <p className="text-muted-foreground text-lg">Gestionar aislamiento y ciclo de vida de las cuentas.</p>
+          <h1 className="text-4xl font-bold tracking-tight">Empresas</h1>
+          <p className="text-muted-foreground text-lg">Gestionar aislamiento y ciclo de vida de las empresas registradas.</p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="h-11 px-6 bg-primary text-primary-foreground font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 gap-2">
-              <UserPlus className="h-5 w-5" />
-              Provisionar Tenante
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px] bg-card border-border shadow-2xl">
-            <form onSubmit={handleCreateTenant}>
-              <DialogHeader>
-                <DialogTitle className="text-primary text-xl">Provisionar Nuevo Tenante</DialogTitle>
-                <DialogDescription className="text-muted-foreground">
-                  Complete la información para registrar una nueva organización en la plataforma.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-5 py-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Nombre de la Empresa</Label>
-                  <Input id="name" name="name" placeholder="Ej. Acme Corp" className="bg-muted/20 border-border h-11" required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="country" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">País</Label>
-                  <Input id="country" name="country" placeholder="Ej. México" className="bg-muted/20 border-border h-11" required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="planId" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Plan Inicial</Label>
-                  <Select name="planId" defaultValue="plan_starter" required>
-                    <SelectTrigger className="bg-muted/20 border-border h-11">
-                      <SelectValue placeholder="Seleccione un plan" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="plan_starter">Inicial ($49/mes)</SelectItem>
-                      <SelectItem value="plan_business">Negocios ($199/mes)</SelectItem>
-                      <SelectItem value="plan_enterprise">Corporativo ($999/mes)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter className="gap-2 sm:gap-0">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSubmitting} className="border-border">
-                  Cancelar
-                </Button>
-                <Button type="submit" className="bg-primary text-primary-foreground font-bold" disabled={isSubmitting}>
-                  {isSubmitting ? "Provisionando..." : "Crear Tenante"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          className="h-11 px-6 bg-primary text-primary-foreground font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 gap-2"
+          onClick={handleOpenCreateTenant}
+        >
+          <UserPlus className="h-5 w-5" />
+          Provisionar Empresa
+        </Button>
+
+        <TenantDialog 
+          isOpen={isTenantDialogOpen} 
+          onOpenChange={setIsTenantDialogOpen} 
+          tenant={tenantToEdit}
+        />
       </div>
 
       <div className="flex flex-col md:flex-row items-center gap-6">
@@ -265,19 +220,19 @@ export default function TenantsPage() {
         {loadingTenants ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-4">
             <Loader2 className="h-10 w-10 text-primary animate-spin" />
-            <p className="text-muted-foreground font-medium">Sincronizando tenantes con la red global...</p>
+            <p className="text-muted-foreground font-medium">Sincronizando empresas con la red global...</p>
           </div>
         ) : filteredTenants.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 text-center">
             <Globe2 className="h-12 w-12 text-muted-foreground/30 mb-4" />
-            <h3 className="text-xl font-bold mb-1">No se encontraron tenantes</h3>
-            <p className="text-muted-foreground max-w-sm">No hay registros que coincidan con tu búsqueda o aún no has provisionado ninguno.</p>
+            <h3 className="text-xl font-bold mb-1">No se encontraron empresas</h3>
+            <p className="text-muted-foreground max-w-sm">No hay registros que coincidan con tu búsqueda o aún no has provisionado ninguna.</p>
           </div>
         ) : (
           <Table>
             <TableHeader className="bg-muted/40 border-b border-border/50">
               <TableRow className="hover:bg-transparent border-none">
-                <TableHead className="py-5 font-bold uppercase tracking-[0.2em] text-[10px] text-muted-foreground/70">Nombre del Tenante</TableHead>
+                <TableHead className="py-5 font-bold uppercase tracking-[0.2em] text-[10px] text-muted-foreground/70">Nombre de la Empresa</TableHead>
                 <TableHead className="py-5 font-bold uppercase tracking-[0.2em] text-[10px] text-muted-foreground/70 text-center">Estado</TableHead>
                 <TableHead className="py-5 font-bold uppercase tracking-[0.2em] text-[10px] text-muted-foreground/70 text-center">Región</TableHead>
                 <TableHead className="py-5 font-bold uppercase tracking-[0.2em] text-[10px] text-muted-foreground/70 text-center">Plan</TableHead>
@@ -320,18 +275,22 @@ export default function TenantsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">
-                    <div className="flex items-center justify-center -space-x-2">
+                    <div className="flex flex-wrap justify-center gap-1.5 max-w-[200px] mx-auto">
                       {tenant.activeModules && tenant.activeModules.length > 0 ? (
                         <>
-                          {tenant.activeModules.slice(0, 3).map((modId) => (
-                            <div key={modId} className="h-7 w-7 rounded-full border-2 border-card bg-primary shadow-lg flex items-center justify-center text-[8px] font-black text-primary-foreground uppercase overflow-hidden" title={modId}>
-                              {availableModules.find(m => m.id === modId)?.name.slice(0, 2) || 'M'}
-                            </div>
+                          {tenant.activeModules.slice(0, 2).map((modId) => (
+                            <Badge 
+                              key={modId} 
+                              variant="outline" 
+                              className="bg-primary/5 border-primary/20 text-primary text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter whitespace-nowrap"
+                            >
+                              {(availableModules || []).find(m => m.id === modId)?.name || modId}
+                            </Badge>
                           ))}
-                          {tenant.activeModules.length > 3 && (
-                            <div className="h-7 w-7 rounded-full border-2 border-card bg-muted flex items-center justify-center text-[8px] font-bold text-muted-foreground shadow-lg">
-                              +{tenant.activeModules.length - 3}
-                            </div>
+                          {tenant.activeModules.length > 2 && (
+                            <Badge variant="secondary" className="text-[9px] font-black px-2 py-0.5 rounded-full bg-muted/50 border-border/50 text-muted-foreground">
+                              +{tenant.activeModules.length - 2}
+                            </Badge>
                           )}
                         </>
                       ) : (
@@ -343,27 +302,48 @@ export default function TenantsPage() {
                     {new Date(tenant.createdAt).toLocaleDateString('es-ES')}
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary rounded-xl">
                           <MoreVertical className="h-5 w-5" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56 bg-card border-border shadow-2xl p-2">
-                        <DropdownMenuItem className="rounded-lg h-10 font-medium cursor-pointer">Ver Detalles</DropdownMenuItem>
                         <DropdownMenuItem 
                           className="rounded-lg h-10 font-medium cursor-pointer"
-                          onClick={() => handleOpenEditModules(tenant)}
+                          onSelect={() => handleOpenEditTenant(tenant)}
                         >
                           <Settings2 className="mr-2 h-4 w-4" />
-                          Editar Configuración
+                          Editar Datos Básicos
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="rounded-lg h-10 font-medium cursor-pointer">Gestionar Suscripciones</DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="rounded-lg h-10 font-medium cursor-pointer"
+                          onSelect={() => {
+                            setTargetTenantId(tenant.id);
+                            setIsUsersDialogOpen(true);
+                          }}
+                        >
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          Gestionar Usuarios
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="rounded-lg h-10 font-medium cursor-pointer"
+                          onSelect={() => handleOpenEditModules(tenant)}
+                        >
+                          <Box className="mr-2 h-4 w-4" />
+                          Gestionar Módulos
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="rounded-lg h-10 font-medium cursor-pointer"
+                          onSelect={() => handleOpenSubscription(tenant.id)}
+                        >
+                          Gestionar Suscripciones
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-border/50" />
                         {tenant.status === 'active' ? (
-                          <DropdownMenuItem className="text-red-500 rounded-lg h-10 font-bold cursor-pointer">Suspender Tenante</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-500 rounded-lg h-10 font-bold cursor-pointer">Suspender Empresa</DropdownMenuItem>
                         ) : (
-                          <DropdownMenuItem className="text-primary rounded-lg h-10 font-bold cursor-pointer">Reactivar Tenante</DropdownMenuItem>
+                          <DropdownMenuItem className="text-primary rounded-lg h-10 font-bold cursor-pointer">Reactivar Empresa</DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -458,6 +438,18 @@ export default function TenantsPage() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+
+      <SubscriptionDialog 
+        isOpen={isSubDialogOpen} 
+        onOpenChange={setIsSubDialogOpen} 
+        defaultTenantId={targetTenantId}
+      />
+
+      <TenantUsersDialog
+        isOpen={isUsersDialogOpen}
+        onOpenChange={setIsUsersDialogOpen}
+        tenantId={targetTenantId}
+      />
     </div>
   );
 }

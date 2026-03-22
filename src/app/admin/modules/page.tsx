@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFirestore, useCollection } from '@/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -36,7 +36,7 @@ export default function ModulesPage() {
     remoteUrl: string;
     status: 'active' | 'inactive';
     dependencies?: string[];
-  }>(modulesQuery);
+  }>(modulesQuery as any);
 
   async function handleCreateModule(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -57,7 +57,17 @@ export default function ModulesPage() {
     const modulesRef = collection(firestore, '_gl_modules');
     
     addDoc(modulesRef, moduleData)
-      .then(() => {
+      .then(async (docRef) => {
+        // Log de auditoría
+        await addDoc(collection(firestore, '_gl_audit_logs'), {
+          action: 'create',
+          type: 'info',
+          message: `Nuevo módulo registrado en el catálogo: ${moduleData.name}`,
+          timestamp: serverTimestamp(),
+          targetId: docRef.id,
+          targetCollection: '_gl_modules',
+          userId: 'system'
+        });
         setIsDialogOpen(false);
       })
       .catch(async (error: any) => {

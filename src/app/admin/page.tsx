@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ import {
   Search,
   MoreHorizontal
 } from "lucide-react";
+import { TenantDialog } from '@/components/admin/TenantDialog';
 import { 
   Area, 
   AreaChart, 
@@ -42,64 +43,31 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore, useCollection } from '@/firebase';
+import { collection, addDoc, serverTimestamp, query, orderBy, limit, where } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function DashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
-  const [statsValue, setStatsValue] = useState<string[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const firestore = useFirestore();
   const { toast } = useToast();
 
+  // Suscripciones en tiempo real a las colecciones globales (Memoria estabilizada para evitar infinite loops)
+  const tenantsQuery = useMemo(() => firestore ? collection(firestore, '_gl_tenants') : null, [firestore]);
+  const subscriptionsQuery = useMemo(() => firestore ? collection(firestore, '_gl_subscriptions') : null, [firestore]);
+  const logsQuery = useMemo(() => firestore ? query(collection(firestore, '_gl_audit_logs'), orderBy('timestamp', 'desc'), limit(5)) : null, [firestore]);
+
+  const { data: tenantsData } = useCollection(tenantsQuery);
+  const { data: subscriptionsData } = useCollection(subscriptionsQuery);
+  const { data: logsData } = useCollection(logsQuery);
+
   useEffect(() => {
     setIsMounted(true);
-    setStatsValue(["1,284", "1,142", "943", "$124,500"]);
   }, []);
-
-  async function handleCreateTenant(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!firestore || isSubmitting) return;
-
-    setIsSubmitting(true);
-    const formData = new FormData(e.currentTarget);
-    const tenantName = formData.get('name') as string;
-    
-    const tenantData = {
-      name: tenantName,
-      country: formData.get('country') as string,
-      planId: formData.get('planId') as string,
-      status: 'active',
-      activeModules: [],
-      createdAt: new Date().toISOString(), // Usamos ISOString para compatibilidad inmediata con la interfaz
-    };
-
-    const tenantsRef = collection(firestore, '_gl_tenants');
-    
-    addDoc(tenantsRef, tenantData)
-      .then(() => {
-        setIsDialogOpen(false);
-        // Las notificaciones de éxito no se muestran por toast según lineamientos de UI
-        console.log('Tenante creado con éxito');
-      })
-      .catch(async (error: any) => {
-        console.error('Error al crear tenante:', error);
-        const permissionError = new FirestorePermissionError({
-          path: tenantsRef.path,
-          operation: 'create',
-          requestResourceData: tenantData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
-  }
 
   const revenueData = [
     { date: '01 May', revenue: 45000 },
@@ -113,12 +81,24 @@ export default function DashboardPage() {
     { date: '29 May', revenue: 112000 },
   ];
 
+  // Cálculos dinámicos basados en la data real
+  const totalTenantsCount = tenantsData?.length || 0;
+  const activeTenantsCount = tenantsData?.filter(t => (t as any).status === 'active').length || 0;
+  const activeSubscriptions = subscriptionsData?.filter(s => (s as any).status === 'active');
+  const mrrValue = activeSubscriptions?.reduce((acc, s) => acc + (Number((s as any).amount) || 0), 0) || 0;
+  
+  const formattedMRR = new Intl.NumberFormat('en-US', { 
+    style: 'currency', 
+    currency: 'USD',
+    maximumFractionDigits: 0 
+  }).format(mrrValue);
+
   const stats = [
     { 
       label: "TOTAL DE TENANTES", 
-      value: statsValue[0] || "...", 
-      subValue: "v.s mes pasado 1,146", 
-      trend: "+12%", 
+      value: totalTenantsCount.toLocaleString(), 
+      subValue: "Registrados en la plataforma", 
+      trend: "+100%", // Esto podría dinamizarse con histórico
       trendUp: true, 
       icon: Building,
       iconBg: "bg-primary/10",
@@ -126,8 +106,8 @@ export default function DashboardPage() {
     },
     { 
       label: "TENANTES ACTIVOS", 
-      value: statsValue[1] || "...", 
-      subValue: "88.9% Tasa de actividad", 
+      value: activeTenantsCount.toLocaleString(), 
+      subValue: `${totalTenantsCount > 0 ? ((activeTenantsCount / totalTenantsCount) * 100).toFixed(1) : 0}% Tasa de actividad`, 
       trend: "+5%", 
       trendUp: true, 
       icon: Zap,
@@ -136,18 +116,18 @@ export default function DashboardPage() {
     },
     { 
       label: "SUSCRIPCIONES", 
-      value: statsValue[2] || "...", 
-      subValue: "24 Nuevas esta semana", 
-      trend: "+8.2%", 
+      value: (subscriptionsData?.length || 0).toLocaleString(), 
+      subValue: `${activeSubscriptions?.length || 0} Activas actualmente`, 
+      trend: "+100%", 
       trendUp: true, 
       icon: CreditCard,
       iconBg: "bg-amber-500/10",
       iconColor: "text-amber-500"
     },
     { 
-      label: "INGRESOS TOTALES", 
-      value: statsValue[3] || "...", 
-      subValue: "Meta: $150k", 
+      label: "MRR (INGRESOS)", 
+      value: formattedMRR, 
+      subValue: "Mensual Recurrente Real", 
       trend: "+15%", 
       trendUp: true, 
       icon: DollarSign,
@@ -156,43 +136,27 @@ export default function DashboardPage() {
     },
   ];
 
-  const activities = [
-    { 
-      title: "Acme Corp activó el módulo Global CDN", 
-      time: "hace 2 minutos", 
-      icon: CheckCircle2, 
-      color: "text-primary",
-      bg: "bg-primary/10"
-    },
-    { 
-      title: "Registro de nuevo tenante: Lumina Systems", 
-      time: "hace 45 minutos", 
-      icon: Users, 
-      color: "text-blue-500",
-      bg: "bg-blue-500/10"
-    },
-    { 
-      title: "Alerta de Carga Alta en nodo Cluster: us-east-1a", 
-      time: "hace 1 hora", 
-      icon: AlertTriangle, 
-      color: "text-amber-500",
-      bg: "bg-amber-500/10"
-    },
-    { 
-      title: "Renovación de suscripción para CloudScale Inc.", 
-      time: "hace 3 horas", 
-      icon: CreditCard, 
-      color: "text-purple-500",
-      bg: "bg-purple-500/10"
-    },
-    { 
-      title: "Backup del sistema completado con éxito", 
-      time: "hace 5 horas", 
-      icon: RefreshCcw, 
-      color: "text-muted-foreground",
-      bg: "bg-muted/20"
-    },
-  ];
+  // Helper para formatear tiempo relativo
+  const getRelativeTime = (timestamp: any) => {
+    if (!timestamp) return 'recientemente';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
+    
+    if (diffInMinutes < 1) return 'ahora mismo';
+    if (diffInMinutes < 60) return `hace ${diffInMinutes} min`;
+    if (diffInMinutes < 1440) return `hace ${Math.floor(diffInMinutes / 60)} horas`;
+    return date.toLocaleDateString();
+  };
+
+  // Mapeo de logs de auditoría a actividades
+  const activities = logsData?.map(log => ({
+    title: (log as any).message || (log as any).action || 'Actividad del sistema',
+    time: getRelativeTime((log as any).timestamp),
+    icon: (log as any).type === 'error' ? AlertTriangle : ((log as any).action === 'create' ? Plus : CheckCircle2),
+    color: (log as any).type === 'error' ? "text-amber-500" : "text-primary",
+    bg: (log as any).type === 'error' ? "bg-amber-500/10" : "bg-primary/10"
+  })) || [];
 
   if (!isMounted) return null;
 
@@ -209,55 +173,18 @@ export default function DashboardPage() {
             Exportar CSV
           </Button>
           
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="h-10 px-5 rounded-lg bg-primary text-primary-foreground font-bold hover:bg-primary/90 gap-2 shadow-lg shadow-primary/20">
-                <Plus className="h-4 w-4" />
-                Nuevo Tenante
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-card border-border shadow-2xl">
-              <form onSubmit={handleCreateTenant}>
-                <DialogHeader>
-                  <DialogTitle className="text-primary">Provisionar Nuevo Tenante</DialogTitle>
-                  <DialogDescription>
-                    Complete la información para registrar una nueva organización en la plataforma.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="name">Nombre de la Empresa</Label>
-                    <Input id="name" name="name" placeholder="Ej. Acme Corp" className="bg-muted/30 border-border" required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="country">País</Label>
-                    <Input id="country" name="country" placeholder="Ej. México" className="bg-muted/30 border-border" required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="planId">Plan Inicial</Label>
-                    <Select name="planId" defaultValue="plan_starter" required>
-                      <SelectTrigger className="bg-muted/30 border-border">
-                        <SelectValue placeholder="Seleccione un plan" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="plan_starter">Inicial ($49/mes)</SelectItem>
-                        <SelectItem value="plan_business">Negocios ($199/mes)</SelectItem>
-                        <SelectItem value="plan_enterprise">Corporativo ($999/mes)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSubmitting}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" className="bg-primary text-primary-foreground font-bold" disabled={isSubmitting}>
-                    {isSubmitting ? "Provisionando..." : "Crear Tenante"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button 
+            className="h-10 px-5 rounded-lg bg-primary text-primary-foreground font-bold hover:bg-primary/90 gap-2 shadow-lg shadow-primary/20"
+            onClick={() => setIsDialogOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo Tenante
+          </Button>
+          
+          <TenantDialog 
+            isOpen={isDialogOpen} 
+            onOpenChange={setIsDialogOpen} 
+          />
         </div>
       </div>
 

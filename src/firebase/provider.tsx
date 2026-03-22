@@ -24,8 +24,10 @@ export function FirebaseProvider({
   firestore: Firestore; 
   auth: Auth;
 }) {
+  const value = React.useMemo(() => ({ app, firestore, auth }), [app, firestore, auth]);
+
   return (
-    <FirebaseContext.Provider value={{ app, firestore, auth }}>
+    <FirebaseContext.Provider value={value}>
       {children}
     </FirebaseContext.Provider>
   );

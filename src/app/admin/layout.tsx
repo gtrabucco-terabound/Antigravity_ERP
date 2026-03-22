@@ -1,13 +1,18 @@
+'use client';
+
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { LayoutDashboard, Users, Box, CreditCard, Banknote, Settings, ClipboardList, Bell, HelpCircle, LogOut, Search } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  
   const mainMenu = [
-    { name: "Tablero", icon: LayoutDashboard, href: "/admin", active: true },
-    { name: "Tenantes", icon: Users, href: "/admin/tenants" },
+    { name: "Tablero", icon: LayoutDashboard, href: "/admin", exact: true },
+    { name: "Empresas", icon: Users, href: "/admin/tenants" },
     { name: "Módulos", icon: Box, href: "/admin/modules" },
     { name: "Planes", icon: CreditCard, href: "/admin/plans" },
     { name: "Suscripciones", icon: Banknote, href: "/admin/subscriptions" },
@@ -17,6 +22,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Ajustes", icon: Settings, href: "/admin/settings" },
     { name: "Logs de Auditoría", icon: ClipboardList, href: "/admin/audit" },
   ];
+
+  const isActive = (href: string, exact: boolean = false) => {
+    if (exact) return pathname === href;
+    return pathname.startsWith(href);
+  };
 
   return (
     <SidebarProvider>
@@ -37,35 +47,45 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="mb-6">
               <h3 className="px-4 mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Menú Principal</h3>
               <SidebarMenu>
-                {mainMenu.map((item) => (
-                  <SidebarMenuItem key={item.name}>
-                    <SidebarMenuButton 
-                      asChild 
-                      tooltip={item.name} 
-                      className={`h-11 rounded-lg transition-all duration-200 ${item.active ? 'bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/10' : 'hover:bg-sidebar-accent'}`}
-                    >
-                      <Link href={item.href} className="flex items-center gap-3">
-                        <item.icon className={`h-5 w-5 ${item.active ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-                        <span>{item.name}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {mainMenu.map((item) => {
+                  const active = isActive(item.href, item.exact);
+                  return (
+                    <SidebarMenuItem key={item.name}>
+                      <SidebarMenuButton 
+                        asChild 
+                        tooltip={item.name} 
+                        className={`h-11 rounded-lg transition-all duration-200 ${active ? 'bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/10' : 'hover:bg-sidebar-accent'}`}
+                      >
+                        <Link href={item.href} className="flex items-center gap-3">
+                          <item.icon className={`h-5 w-5 ${active ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                          <span>{item.name}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </div>
             <div>
               <h3 className="px-4 mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">Sistema</h3>
               <SidebarMenu>
-                {systemMenu.map((item) => (
-                  <SidebarMenuItem key={item.name}>
-                    <SidebarMenuButton asChild tooltip={item.name} className="h-11 rounded-lg hover:bg-sidebar-accent">
-                      <Link href={item.href} className="flex items-center gap-3">
-                        <item.icon className="h-5 w-5 text-muted-foreground" />
-                        <span>{item.name}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {systemMenu.map((item) => {
+                  const active = isActive(item.href);
+                  return (
+                    <SidebarMenuItem key={item.name}>
+                      <SidebarMenuButton 
+                        asChild 
+                        tooltip={item.name} 
+                        className={`h-11 rounded-lg transition-all duration-200 ${active ? 'bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/10' : 'hover:bg-sidebar-accent'}`}
+                      >
+                        <Link href={item.href} className="flex items-center gap-3">
+                          <item.icon className={`h-5 w-5 ${active ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                          <span>{item.name}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </div>
           </SidebarContent>
@@ -95,7 +115,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <div className="relative w-full group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <Input 
-                  placeholder="Buscar sistemas, tenantes o datos de ingresos..." 
+                  placeholder="Buscar sistemas, empresas o datos de ingresos..." 
                   className="pl-12 bg-muted/20 border-border h-11 rounded-xl focus-visible:ring-1 focus-visible:ring-primary/30 transition-all"
                 />
               </div>
